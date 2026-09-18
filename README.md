@@ -6,6 +6,16 @@ Stock Buddy is a mobile-friendly inventory tracker built with C# and Blazor. Eac
 
 **Live demo:** [stockbuddy.77-112-80-43.sslip.io](https://stockbuddy.77-112-80-43.sslip.io)
 
+## Screenshots
+
+### Inventory
+
+![Stock Buddy inventory page showing item totals and quantity controls](docs/images/inventory-page.png)
+
+### Sign in
+
+<img src="docs/images/sign-in-page.png" alt="Stock Buddy sign-in page" width="420">
+
 ## Highlights
 
 - User registration and sign-in with ASP.NET Core Identity
