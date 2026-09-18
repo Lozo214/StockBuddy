@@ -1,0 +1,8 @@
+@inject NavigationManager Navigation
+<p>Your session has ended. <a href="/Account/Login" data-enhance-nav="false">Sign in</a> to continue.</p>
+@code {
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender) Navigation.NavigateTo("/Account/Login", forceLoad: true);
+    }
+}

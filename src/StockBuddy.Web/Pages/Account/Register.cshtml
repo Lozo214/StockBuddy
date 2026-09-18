@@ -1,0 +1,19 @@
+@page
+@model StockBuddy.Web.Pages.Account.RegisterModel
+@{ ViewData["Title"] = "Create an account"; }
+<h1>Your stock. Your space.</h1>
+<p>Create an account to keep your inventory saved and private.</p>
+<form method="post">
+    <div asp-validation-summary="All" class="validation" role="alert"></div>
+    <label asp-for="Input.UserName">Username</label>
+    <input asp-for="Input.UserName" autocomplete="username" required minlength="3" maxlength="40" />
+    <small>3–40 letters, numbers, dots, underscores, or hyphens.</small>
+    <label asp-for="Input.Password">Password</label>
+    <input asp-for="Input.Password" type="password" autocomplete="new-password" required minlength="12" maxlength="128" />
+    <small>At least 12 characters. A memorable passphrase works well.</small>
+    <label asp-for="Input.ConfirmPassword">Confirm password</label>
+    <input asp-for="Input.ConfirmPassword" type="password" autocomplete="new-password" required maxlength="128" />
+    <button type="submit">Create account</button>
+</form>
+<p>Already have an account? <a asp-page="/Account/Login">Sign in</a></p>
+<p class="note">Keep your password safe: password recovery isn’t available yet.</p>

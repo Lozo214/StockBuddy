@@ -1,0 +1,13 @@
+services:
+  stockbuddy:
+    build: .
+    # Local HTTP preview only. Use Production and HTTPS for deployment.
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - stockbuddy-data:/data
+    restart: unless-stopped
+volumes:
+  stockbuddy-data:

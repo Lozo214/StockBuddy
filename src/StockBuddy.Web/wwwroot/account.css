@@ -1,0 +1,17 @@
+.account-card { width:calc(100% - 32px); max-width:460px; margin:8vh auto; padding:32px; border:1px solid #dce3dc; border-radius:18px; background:white; box-shadow:0 12px 40px #243c2f09; }
+.brand { font-size:14px; font-weight:800; letter-spacing:2px; text-decoration:none; }
+h1 { font-size:30px; letter-spacing:-1px; margin:30px 0 12px; }
+p { line-height:1.6; color:#657268; }
+a { color:#244c3a; }
+label { display:block; font-weight:600; margin:22px 0 8px; }
+input { width:100%; min-width:0; min-height:46px; font:inherit; font-size:16px; padding:10px; border:1px solid #a5b8a5; border-radius:8px; }
+input:focus, button:focus-visible, a:focus-visible { outline:3px solid #92b797; outline-offset:2px; }
+small { display:block; margin-top:8px; color:#657268; line-height:1.5; }
+button { width:100%; min-height:46px; margin-top:24px; padding:12px; border:0; border-radius:8px; background:#244c3a; color:white; font:inherit; font-weight:600; cursor:pointer; }
+button:hover { background:#183b2a; }
+.remember { display:flex; gap:12px; align-items:center; font-weight:400; font-size:14px; }
+.remember input { width:20px; min-height:20px; height:20px; flex-shrink:0; }
+.validation { color:#842f28; line-height:1.6; }
+.validation ul { padding-left:20px; }
+.note { font-size:12px; }
+@media(max-width:400px) { .account-card { padding:24px 20px; margin:24px auto; } }

@@ -1,0 +1,173 @@
+@page "/"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@using StockBuddy.Web.Models
+@using StockBuddy.Web.Services
+@using Microsoft.EntityFrameworkCore
+@inject InventoryService Inventory
+@inject ILogger<Home> Logger
+@inject NavigationManager Navigation
+
+<PageTitle>Stock Buddy · Inventory</PageTitle>
+<main class="workspace">
+    <header>
+        <div class="brand"><span class="brand-icon" aria-hidden="true">▤</span> STOCK BUDDY</div>
+        <div class="account-menu">
+            <AuthorizeView><span class="account-name">@context.User.Identity?.Name</span></AuthorizeView>
+            <a href="/Account/Logout" data-enhance-nav="false">Sign out</a>
+        </div>
+    </header>
+    <section class="intro">
+        <p class="eyebrow">A LITTLE ORDER. A LOT LESS GUESSWORK.</p>
+        <h1>Know what’s in stock.</h1>
+        <p class="description">Keep your items and quantities in one place. Make a change. Get on with your day.</p>
+    </section>
+    <section class="summary" aria-label="Inventory summary">
+        <div><span>ITEMS TRACKED</span><strong>@items.Count</strong></div>
+        <div><span>TOTAL UNITS</span><strong>@items.Sum(x => (long)x.Count).ToString("N0")</strong></div>
+        <div><span>OUT OF STOCK</span><strong>@items.Count(x => x.Count == 0)</strong></div>
+    </section>
+    <section class="inventory">
+        <div class="toolbar"><h2>Inventory</h2><button class="primary" @onclick="AddRow" disabled="@busy">+ Add item</button></div>
+        <div class="save-line" role="status" aria-live="polite">@status</div>
+        @if (error is not null)
+        {
+            <div class="error" role="alert">@error
+                <button @onclick="Reload" disabled="@busy">Reload saved inventory</button>
+            </div>
+        }
+        @if (loading) { <p class="empty">Loading your inventory…</p> }
+        else if (items.Count == 0)
+        {
+            <div class="empty"><h3>A fresh start.</h3><p>Add your first item to start keeping count.</p></div>
+        }
+        else
+        {
+            <table>
+                <caption class="sr-only">Inventory items and counts. Edits save when you leave a field.</caption>
+                <thead><tr><th scope="col">Item</th><th scope="col">Count</th></tr></thead>
+                <tbody>
+                    @foreach (var item in items)
+                    {
+                        <tr @key="(item.Id, inputRevision)">
+                            <td>
+                                <div class="item-editor">
+                                    <label class="sr-only" for="@($"name-{item.Id}")">Item name for row @item.Id</label>
+                                    <input id="@($"name-{item.Id}")" type="text" value="@item.Name" maxlength="120"
+                                           placeholder="e.g. Printer paper" disabled="@busy" @onchange="e => EditName(item, e)" />
+                                    @if (pendingDelete == item.Id)
+                                    {
+                                        <div class="delete-confirm"><span>Remove this item?</span>
+                                            <button class="remove" disabled="@busy" @onclick="() => RemoveRow(item)">Yes, remove</button>
+                                            <button disabled="@busy" @onclick="() => pendingDelete = null">Cancel</button>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <button class="remove" disabled="@busy" @onclick="() => pendingDelete = item.Id">Remove item</button>
+                                    }
+                                </div>
+                            </td>
+                            <td>
+                                <div class="count-editor">
+                                    <input class="current-count" type="number" min="0" max="@int.MaxValue" step="1" inputmode="numeric"
+                                           aria-label="@($"Count for {item.Name}")" value="@item.Count" disabled="@busy"
+                                           @onchange="e => EditNumber(item, e, false)" />
+                                    <div class="adjustment-controls">
+                                        <button aria-label="@($"Subtract from {item.Name}")" disabled="@busy" @onclick="() => Adjust(item, true)">−</button>
+                                        <input type="number" min="1" max="@int.MaxValue" step="1" inputmode="numeric"
+                                               aria-label="@($"Adjustment for {item.Name}")" value="@item.Adjustment" disabled="@busy"
+                                               @onchange="e => EditNumber(item, e, true)" />
+                                        <button aria-label="@($"Add to {item.Name}")" disabled="@busy" @onclick="() => Adjust(item, false)">+</button>
+                                    </div>
+                                    <span class="adjust-hint">Adjust by this amount</span>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        <footer>Edits save automatically when you leave a field. Adjustments save immediately.</footer>
+    </section>
+    <p class="bottom-note">Small changes. Everything accounted for.</p>
+</main>
+
+@code {
+    private List<StockItem> items = [];
+    private bool loading = true, busy;
+    private string status = "Connecting…";
+    private string? error;
+    private int? pendingDelete;
+    private int inputRevision;
+    protected override async Task OnInitializedAsync() => await Reload();
+
+    private async Task Execute(Func<Task> action)
+    {
+        if (busy) return;
+        busy = true;
+        error = null;
+        status = "Saving…";
+        try { await action(); status = $"Saved · {DateTime.Now:t}"; }
+        catch (UnauthorizedAccessException)
+        {
+            items.Clear();
+            Navigation.NavigateTo("/Account/Login", forceLoad: true);
+        }
+        catch (ArgumentException ex) { error = ex.Message; status = "Change not saved"; }
+        catch (DbUpdateConcurrencyException)
+        {
+            error = "Another tab changed this row. Reload saved inventory before editing again.";
+            status = "Change not saved";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Inventory operation failed");
+            error = "Could not save or load inventory. Check your connection and reload saved inventory to retry.";
+            status = "Not saved";
+        }
+        finally
+        {
+            // Recreate inputs after a failed edit so the screen shows the last saved values.
+            if (error is not null) inputRevision++;
+            busy = false;
+        }
+    }
+    private async Task Reload()
+    {
+        await Execute(async () => items = await Inventory.ListAsync());
+        loading = false;
+        if (error is null) status = "All changes saved";
+        pendingDelete = null;
+    }
+    private Task AddRow() => Execute(async () => items.Add(await Inventory.AddAsync()));
+    private Task EditName(StockItem item, ChangeEventArgs args) => Execute(async () =>
+    {
+        var old = item.Name;
+        item.Name = args.Value?.ToString() ?? "";
+        try { await Inventory.SaveAsync(item); }
+        catch { item.Name = old; throw; }
+    });
+    private Task EditNumber(StockItem item, ChangeEventArgs args, bool adjustment) => Execute(async () =>
+    {
+        if (!int.TryParse(args.Value?.ToString(), out var value) || value < (adjustment ? 1 : 0))
+            throw new ArgumentException(adjustment ? "Adjustment must be a whole number from 1 to 2,147,483,647." : "Count must be a whole number from 0 to 2,147,483,647.");
+        var old = adjustment ? item.Adjustment : item.Count;
+        if (adjustment) item.Adjustment = value; else item.Count = value;
+        try { await Inventory.SaveAsync(item); }
+        catch { if (adjustment) item.Adjustment = old; else item.Count = old; throw; }
+    });
+    private Task Adjust(StockItem item, bool subtract) => Execute(async () =>
+    {
+        var old = item.Count;
+        item.Count = InventoryService.Adjust(item.Count, item.Adjustment, subtract);
+        try { await Inventory.SaveAsync(item); }
+        catch { item.Count = old; throw; }
+    });
+    private Task RemoveRow(StockItem item) => Execute(async () =>
+    {
+        await Inventory.DeleteAsync(item);
+        items.Remove(item);
+        pendingDelete = null;
+    });
+}

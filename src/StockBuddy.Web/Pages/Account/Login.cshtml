@@ -1,0 +1,15 @@
+@page
+@model StockBuddy.Web.Pages.Account.LoginModel
+@{ ViewData["Title"] = "Sign in"; }
+<h1>Welcome back.</h1>
+<p>Your inventory is right where you left it.</p>
+<form method="post">
+    <div asp-validation-summary="All" class="validation" role="alert"></div>
+    <label asp-for="Input.UserName">Username</label>
+    <input asp-for="Input.UserName" autocomplete="username" required maxlength="40" />
+    <label asp-for="Input.Password">Password</label>
+    <input asp-for="Input.Password" type="password" autocomplete="current-password" required maxlength="128" />
+    <label class="remember"><input asp-for="Input.RememberMe" /> Keep me signed in on this device</label>
+    <button type="submit">Sign in</button>
+</form>
+<p>New to Stock Buddy? <a asp-page="/Account/Register">Create an account</a></p>
