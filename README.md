@@ -77,8 +77,8 @@ Browser → Blazor interactive server component → InventoryService → EF Core
 
 Each database operation uses a fresh context. The component never holds a shared long-lived context.
 Each record has a version token that changes after a successful save.
-The GitHub workflow builds, tests, and publishes when this folder is used as the repository root.
-It has not been run on GitHub yet.
+The GitHub Actions workflow builds, tests, and publishes the application on every push to `main` and on pull requests.
+Its first run completed successfully for the initial public release.
 
 ## Current scope and deployment
 

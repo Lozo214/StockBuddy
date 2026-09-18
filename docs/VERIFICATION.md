@@ -12,7 +12,7 @@
 - Inspected layout at 390px; checked 320px document width without horizontal overflow.
 - Left sample Printer paper row in the local database for demonstration.
 
-Not verified: Docker execution (Docker unavailable), GitHub workflow execution, public hosting, AWS resources, authentication, or physical phone access.
+Not verified: Docker execution on the development machine (Docker unavailable) or testing on a physical phone.
 The above results describe the initial shared-inventory version.
 
 ## Account update
@@ -25,3 +25,12 @@ The above results describe the initial shared-inventory version.
 - Browser verified that anonymous inventory access redirects to sign-in and the registration page renders.
 - No user account was created in the real local database by automated tests; test accounts use temporary databases.
 - Email verification, password recovery, MFA, and account deletion are not implemented.
+
+## Public release
+
+- Deployed the application in a Docker container on an Amazon EC2 instance in AWS Ohio.
+- Verified the public HTTPS health endpoint and sign-in page at https://stockbuddy.77-112-80-43.sslip.io.
+- Verified that both production SQLite database files persisted through an application-container restart.
+- Published the source to https://github.com/Lozo214/StockBuddy.
+- GitHub Actions build-and-test run #1 completed successfully in 37 seconds.
+- No production account was created during deployment verification; account behavior is covered by the automated integration tests above.
